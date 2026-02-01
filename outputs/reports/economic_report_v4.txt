@@ -1,0 +1,63 @@
+======================================================================
+ECONOMIC BACKTEST RESULTS
+======================================================================
+Generated: 2026-02-01 11:15:23.216836
+Asset Capacity: 10.0 MW
+
+Baseline Revenue (No Curtailment): 893,362.81 EUR
+Maximum Possible Savings: 12,840.40 EUR
+
+----------------------------------------------------------------------
+STRATEGY COMPARISON (sorted by Capture Rate)
+----------------------------------------------------------------------
+
+ML Model (v4)
+  Revenue:        903,223.86 EUR
+  Savings:          9,861.05 EUR
+  Capture Rate:        76.8%
+  Precision:           88.5%
+  Recall:              82.0%
+  F1 Score:           0.851
+
+Never Curtail
+  Revenue:        893,362.81 EUR
+  Savings:              0.00 EUR
+  Capture Rate:         0.0%
+  Precision:            0.0%
+  Recall:               0.0%
+  F1 Score:           0.000
+
+Solar Threshold (RES>50% + Low Load)
+  Revenue:        893,074.76 EUR
+  Savings:           -288.05 EUR
+  Capture Rate:        -2.2%
+  Precision:            2.4%
+  Recall:               1.3%
+  F1 Score:           0.017
+
+Heuristic (Weekend + Solar Peak + Season)
+  Revenue:        888,035.27 EUR
+  Savings:         -5,327.54 EUR
+  Capture Rate:       -41.5%
+  Precision:           62.3%
+  Recall:              27.1%
+  F1 Score:           0.378
+
+Naive (Yesterday Same Hour)
+  Revenue:        868,646.29 EUR
+  Savings:        -24,716.52 EUR
+  Capture Rate:      -192.5%
+  Precision:           55.6%
+  Recall:              55.6%
+  F1 Score:           0.556
+
+----------------------------------------------------------------------
+COST BREAKDOWN (Best Strategy)
+----------------------------------------------------------------------
+Strategy: ML Model (v4)
+  Avoided Losses (TP):        11,993.64 EUR
+  Captured Revenue (TN):     904,070.62 EUR
+  Missed Revenue (FP):         2,132.59 EUR
+  Paid to Generate (FN):         846.76 EUR
+
+======================================================================
