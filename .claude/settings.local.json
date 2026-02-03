@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(call c:Userswillianaconda3Scriptsactivate.bat c:Userswillianaconda3envsquant)",
-      "Bash(python scripts/download_data.py:*)"
-    ]
-  }
-}
