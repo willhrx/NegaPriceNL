@@ -84,8 +84,7 @@ negaprice-nl/
 ├── src/                    # Source code
 │   ├── data/collectors/    # Data collection modules
 │   ├── features/           # Feature engineering
-│   ├── models/             # ML models
-│   └── visualization/      # Plotting utilities
+│   └── models/             # ML models
 ├── scripts/                # Standalone scripts
 │   └── download_data.py    # Main data download script
 ├── notebooks/              # Jupyter notebooks for analysis
