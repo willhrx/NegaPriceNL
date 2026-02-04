@@ -26,6 +26,11 @@ env/
 ENV/
 quant/
 
+# Jupyter Notebooks
+.ipynb_checkpoints/
+.ipynb
+notebooks/*.ipynb
+
 # Environment variables
 .env
 
