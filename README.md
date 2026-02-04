@@ -140,10 +140,6 @@ To obtain your free ENTSO-E API key:
 3. Request an API key (usually instant approval)
 4. Add to your `.env` file
 
-## License
-
-MIT License - See LICENSE file for details
-
 ## Contact
 
 For questions or feedback, feel free to reach out or open an issue.
