@@ -143,6 +143,3 @@ To obtain your free ENTSO-E API key:
 
 For questions or feedback, feel free to reach out or open an issue.
 
----
-
-**Status:** Phase 1 - Data Collection ✓
