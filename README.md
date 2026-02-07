@@ -4,7 +4,7 @@ A machine learning system that predicts when Dutch day-ahead electricity prices 
 
 ## Project Overview
 
-The Netherlands recorded 584+ negative price hours in 2025, making it the 2nd highest in Europe. This project builds a predictive model to help renewable energy producers optimize their operations and avoid losses during negative price events.
+The Netherlands recorded 700+ negative price hours in 2025, making it the 2nd highest in Europe. This project builds a predictive model to help renewable energy producers optimize their operations and avoid losses during negative price events.
 
 ## Quick Start
 
