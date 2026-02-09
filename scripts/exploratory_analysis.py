@@ -342,30 +342,30 @@ sample = merged.sample(n=min(5000, len(merged)), random_state=42)
 fig, axes = plt.subplots(1, 2, figsize=(16, 7))
 
 # Scatter: Solar vs Price
-axes[0].scatter(sample['solar'], sample['price'],
-                alpha=0.3, s=20, c=sample['is_negative'],
-                cmap='RdYlGn', vmin=0, vmax=1)
+mask_pos = sample['is_negative'] == 0
+mask_neg = sample['is_negative'] == 1
+axes[0].scatter(sample.loc[mask_pos, 'solar'], sample.loc[mask_pos, 'price'],
+                alpha=0.3, s=20, color='#2ca02c', label='Positive price')
+axes[0].scatter(sample.loc[mask_neg, 'solar'], sample.loc[mask_neg, 'price'],
+                alpha=0.3, s=20, color='#d62728', label='Negative price')
 axes[0].axhline(y=0, color='red', linestyle='--', linewidth=2, alpha=0.7)
 axes[0].set_title('Price vs Solar Generation', fontsize=14, fontweight='bold')
 axes[0].set_xlabel('Solar Generation (MW)')
 axes[0].set_ylabel('Price (€/MWh)')
 axes[0].grid(True, alpha=0.3)
+axes[0].legend(fontsize=10, markerscale=2)
 
 # Scatter: Total RES vs Price
-scatter = axes[1].scatter(sample['total_res'], sample['price'],
-                         alpha=0.3, s=20, c=sample['is_negative'],
-                         cmap='RdYlGn', vmin=0, vmax=1)
+axes[1].scatter(sample.loc[mask_pos, 'total_res'], sample.loc[mask_pos, 'price'],
+                alpha=0.3, s=20, color='#2ca02c', label='Positive price')
+axes[1].scatter(sample.loc[mask_neg, 'total_res'], sample.loc[mask_neg, 'price'],
+                alpha=0.3, s=20, color='#d62728', label='Negative price')
 axes[1].axhline(y=0, color='red', linestyle='--', linewidth=2, alpha=0.7)
 axes[1].set_title('Price vs Total Renewable Generation', fontsize=14, fontweight='bold')
 axes[1].set_xlabel('Total RES Generation (MW)')
 axes[1].set_ylabel('Price (€/MWh)')
 axes[1].grid(True, alpha=0.3)
-
-# Add colorbar
-cbar = plt.colorbar(scatter, ax=axes[1])
-cbar.set_label('Negative Price', rotation=270, labelpad=20)
-cbar.set_ticks([0, 1])
-cbar.set_ticklabels(['No', 'Yes'])
+axes[1].legend(fontsize=10, markerscale=2)
 
 plt.tight_layout()
 plt.savefig(FIGURES_DIR / '06_price_generation_correlation.png', dpi=300, bbox_inches='tight')
@@ -387,8 +387,8 @@ unified = pd.read_csv(PROCESSED_DATA_DIR / "unified_dataset2.csv",
                        index_col=0, parse_dates=True)
 unified.index = pd.to_datetime(unified.index, utc=True)
 
-# Filter out rows where total_generation_mw is missing or zero
-unified_valid = unified[unified['total_generation_mw'].notna() & (unified['total_generation_mw'] > 0)].copy()
+# Filter to 2024 only, and rows where total_generation_mw is valid and positive
+unified_valid = unified[(unified.index.year == 2024) & unified['total_generation_mw'].notna() & (unified['total_generation_mw'] > 0)].copy()
 
 # Compute renewable proportion
 unified_valid['res_proportion'] = (
@@ -402,20 +402,19 @@ sample_06a = unified_valid.sample(n=min(5000, len(unified_valid)), random_state=
 
 fig, ax = plt.subplots(figsize=(16, 7))
 
-scatter = ax.scatter(sample_06a['res_proportion'] * 100, sample_06a['price_eur_mwh'],
-                     alpha=0.3, s=20, c=sample_06a['is_negative'],
-                     cmap='RdYlGn', vmin=0, vmax=1)
+mask_pos = sample_06a['is_negative'] == 0
+mask_neg = sample_06a['is_negative'] == 1
+ax.scatter(sample_06a.loc[mask_pos, 'res_proportion'] * 100, sample_06a.loc[mask_pos, 'price_eur_mwh'],
+           alpha=0.3, s=20, color='#2ca02c', label='Positive price')
+ax.scatter(sample_06a.loc[mask_neg, 'res_proportion'] * 100, sample_06a.loc[mask_neg, 'price_eur_mwh'],
+           alpha=0.3, s=20, color='#d62728', label='Negative price')
 ax.axhline(y=0, color='red', linestyle='--', linewidth=2, alpha=0.7)
 ax.set_title('Price vs Renewable Generation Proportion (Solar + Wind / Total)',
              fontsize=16, fontweight='bold')
 ax.set_xlabel('Renewable Share of Total Generation (%)', fontsize=12)
 ax.set_ylabel('Price (EUR/MWh)', fontsize=12)
 ax.grid(True, alpha=0.3)
-
-cbar = plt.colorbar(scatter, ax=ax)
-cbar.set_label('Negative Price', rotation=270, labelpad=20)
-cbar.set_ticks([0, 1])
-cbar.set_ticklabels(['No', 'Yes'])
+ax.legend(fontsize=11, markerscale=2)
 
 plt.tight_layout()
 plt.savefig(FIGURES_DIR / '06a_renewable_power_proportion_generation.png', dpi=300, bbox_inches='tight')
@@ -428,8 +427,8 @@ print("[+] Saved: 06a_renewable_power_proportion_generation.png")
 
 print("\n[*] Creating Visualization 06b: Renewable Power Proportion (of Load) vs Price...")
 
-# Filter rows where load_mw is valid and positive
-unified_load = unified[unified['load_mw'].notna() & (unified['load_mw'] > 0)].copy()
+# Filter to 2024 only, and rows where load_mw is valid and positive
+unified_load = unified[(unified.index.year == 2024) & unified['load_mw'].notna() & (unified['load_mw'] > 0)].copy()
 
 # Compute renewable-to-load ratio
 unified_load['res_to_load'] = (
@@ -447,20 +446,19 @@ print(f"   Sampled {len(sample_06b):,} points ({sample_06b['is_negative'].sum()}
 
 fig, ax = plt.subplots(figsize=(16, 7))
 
-scatter = ax.scatter(sample_06b['res_to_load'] * 100, sample_06b['price_eur_mwh'],
-                     alpha=0.3, s=20, c=sample_06b['is_negative'],
-                     cmap='RdYlGn', vmin=0, vmax=1)
+mask_pos = sample_06b['is_negative'] == 0
+mask_neg = sample_06b['is_negative'] == 1
+ax.scatter(sample_06b.loc[mask_pos, 'res_to_load'] * 100, sample_06b.loc[mask_pos, 'price_eur_mwh'],
+           alpha=0.3, s=20, color='#2ca02c', label='Positive price')
+ax.scatter(sample_06b.loc[mask_neg, 'res_to_load'] * 100, sample_06b.loc[mask_neg, 'price_eur_mwh'],
+           alpha=0.3, s=20, color='#d62728', label='Negative price')
 ax.axhline(y=0, color='red', linestyle='--', linewidth=2, alpha=0.7)
 ax.set_title('Price vs Renewable Generation as Share of Load (Solar + Wind / Load)',
              fontsize=16, fontweight='bold')
 ax.set_xlabel('Renewable Generation / Load (%)', fontsize=12)
 ax.set_ylabel('Price (EUR/MWh)', fontsize=12)
 ax.grid(True, alpha=0.3)
-
-cbar = plt.colorbar(scatter, ax=ax)
-cbar.set_label('Negative Price', rotation=270, labelpad=20)
-cbar.set_ticks([0, 1])
-cbar.set_ticklabels(['No', 'Yes'])
+ax.legend(fontsize=11, markerscale=2)
 
 plt.tight_layout()
 plt.savefig(FIGURES_DIR / '06b_renewable_power_proportion_load.png', dpi=300, bbox_inches='tight')
