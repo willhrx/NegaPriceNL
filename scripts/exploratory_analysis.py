@@ -170,7 +170,7 @@ hourly_profiles = nl_prices.groupby(['year', 'hour'])['price'].mean().reset_inde
 fig, ax = plt.subplots(figsize=(16, 9))
 
 # Plot each year
-for year in sorted(hourly_profiles['year'].unique()):
+for year in sorted(y for y in hourly_profiles['year'].unique() if y >= 2019):
     year_data = hourly_profiles[hourly_profiles['year'] == year]
     ax.plot(year_data['hour'], year_data['price'],
             linewidth=2.5, marker='o', markersize=4, label=str(year), alpha=0.8)
@@ -183,12 +183,6 @@ ax.set_ylabel('Average Price (€/MWh)', fontsize=13)
 ax.set_xticks(range(0, 24))
 ax.legend(title='Year', fontsize=11, title_fontsize=12)
 ax.grid(True, alpha=0.3)
-
-# Add annotation
-ax.annotate('Midday solar\nsurge drives\nprices down',
-            xy=(12, -5), xytext=(15, 20),
-            arrowprops=dict(arrowstyle='->', color='darkred', lw=2),
-            fontsize=11, color='darkred', fontweight='bold')
 
 plt.tight_layout()
 plt.savefig(FIGURES_DIR / '03_duck_curve_evolution.png', dpi=300, bbox_inches='tight')

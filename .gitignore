@@ -48,6 +48,7 @@ data/outputs/
 logs/
 
 # IDE
+PROJECT_TIMELINE.md
 .claude
 .vscode/
 .idea/
