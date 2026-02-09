@@ -25,6 +25,7 @@ warnings.filterwarnings('ignore')
 from config.settings import (
     ENTSOE_DATA_DIR,
     WEATHER_DATA_DIR,
+    PROCESSED_DATA_DIR,
     FIGURES_DIR
 )
 
@@ -373,6 +374,56 @@ print("[+] Saved: 06_price_generation_correlation.png")
 
 # ============================================================================
 # 9. SUMMARY STATISTICS
+# ============================================================================
+
+# ============================================================================
+# 10. VISUALIZATION 06a: Price vs Renewable Generation Proportion
+# ============================================================================
+
+print("\n[*] Creating Visualization 06a: Renewable Power Proportion vs Price...")
+
+# Load unified dataset with total_generation_mw
+unified = pd.read_csv(PROCESSED_DATA_DIR / "unified_dataset2.csv",
+                       index_col=0, parse_dates=True)
+unified.index = pd.to_datetime(unified.index, utc=True)
+
+# Filter out rows where total_generation_mw is missing or zero
+unified_valid = unified[unified['total_generation_mw'].notna() & (unified['total_generation_mw'] > 0)].copy()
+
+# Compute renewable proportion
+unified_valid['res_proportion'] = (
+    (unified_valid['solar_generation_mw'].fillna(0) + unified_valid['wind_generation_mw'].fillna(0))
+    / unified_valid['total_generation_mw']
+)
+unified_valid['is_negative'] = (unified_valid['price_eur_mwh'] < 0).astype(int)
+
+# Sample for plotting (avoid overplotting)
+sample_06a = unified_valid.sample(n=min(5000, len(unified_valid)), random_state=42)
+
+fig, ax = plt.subplots(figsize=(16, 7))
+
+scatter = ax.scatter(sample_06a['res_proportion'] * 100, sample_06a['price_eur_mwh'],
+                     alpha=0.3, s=20, c=sample_06a['is_negative'],
+                     cmap='RdYlGn', vmin=0, vmax=1)
+ax.axhline(y=0, color='red', linestyle='--', linewidth=2, alpha=0.7)
+ax.set_title('Price vs Renewable Generation Proportion (Solar + Wind / Total)',
+             fontsize=16, fontweight='bold')
+ax.set_xlabel('Renewable Share of Total Generation (%)', fontsize=12)
+ax.set_ylabel('Price (EUR/MWh)', fontsize=12)
+ax.grid(True, alpha=0.3)
+
+cbar = plt.colorbar(scatter, ax=ax)
+cbar.set_label('Negative Price', rotation=270, labelpad=20)
+cbar.set_ticks([0, 1])
+cbar.set_ticklabels(['No', 'Yes'])
+
+plt.tight_layout()
+plt.savefig(FIGURES_DIR / '06a_renewable_power_proportion_generation.png', dpi=300, bbox_inches='tight')
+plt.close()
+print("[+] Saved: 06a_renewable_power_proportion_generation.png")
+
+# ============================================================================
+# SUMMARY
 # ============================================================================
 
 print("\n" + "="*70)
