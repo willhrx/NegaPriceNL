@@ -22,6 +22,8 @@ from pathlib import Path
 from datetime import datetime
 import logging
 
+import pandas as pd
+
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -96,8 +98,6 @@ def download_generation_actual(collector: EntsoeDataCollector, start: datetime, 
 
     if not nl_generation.empty:
         # Extract solar and wind columns if they exist
-        import pandas as pd
-
         if 'Solar' in nl_generation.columns:
             # Convert to numeric and extract (use base column, not .1 suffix which is consumption)
             nl_generation['Solar'] = pd.to_numeric(nl_generation['Solar'], errors='coerce')
@@ -112,7 +112,6 @@ def download_generation_actual(collector: EntsoeDataCollector, start: datetime, 
                         if 'Wind' in col and not col.endswith('.1')]
 
             # Convert to numeric and sum
-            import pandas as pd
             for col in wind_cols:
                 nl_generation[col] = pd.to_numeric(nl_generation[col], errors='coerce')
 
@@ -141,7 +140,6 @@ def download_generation_forecast(collector: EntsoeDataCollector, start: datetime
 
     if not nl_forecast.empty:
         # Convert Series to DataFrame if needed
-        import pandas as pd
         if isinstance(nl_forecast, pd.Series):
             nl_forecast = nl_forecast.to_frame(name='generation_forecast_mw')
             logger.info("Note: Forecast returned as Series, converted to DataFrame")
