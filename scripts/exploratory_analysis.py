@@ -423,6 +423,51 @@ plt.close()
 print("[+] Saved: 06a_renewable_power_proportion_generation.png")
 
 # ============================================================================
+# 11. VISUALIZATION 06b: Price vs Renewable Generation / Load
+# ============================================================================
+
+print("\n[*] Creating Visualization 06b: Renewable Power Proportion (of Load) vs Price...")
+
+# Filter rows where load_mw is valid and positive
+unified_load = unified[unified['load_mw'].notna() & (unified['load_mw'] > 0)].copy()
+
+# Compute renewable-to-load ratio
+unified_load['res_to_load'] = (
+    (unified_load['solar_generation_mw'].fillna(0) + unified_load['wind_generation_mw'].fillna(0))
+    / unified_load['load_mw']
+)
+unified_load['is_negative'] = (unified_load['price_eur_mwh'] < 0).astype(int)
+
+print(f"   Valid records: {len(unified_load):,}")
+print(f"   RES/Load range: {unified_load['res_to_load'].min():.1%} – {unified_load['res_to_load'].max():.1%}")
+
+# Sample for plotting
+sample_06b = unified_load.sample(n=min(5000, len(unified_load)), random_state=42)
+print(f"   Sampled {len(sample_06b):,} points ({sample_06b['is_negative'].sum()} negative)")
+
+fig, ax = plt.subplots(figsize=(16, 7))
+
+scatter = ax.scatter(sample_06b['res_to_load'] * 100, sample_06b['price_eur_mwh'],
+                     alpha=0.3, s=20, c=sample_06b['is_negative'],
+                     cmap='RdYlGn', vmin=0, vmax=1)
+ax.axhline(y=0, color='red', linestyle='--', linewidth=2, alpha=0.7)
+ax.set_title('Price vs Renewable Generation as Share of Load (Solar + Wind / Load)',
+             fontsize=16, fontweight='bold')
+ax.set_xlabel('Renewable Generation / Load (%)', fontsize=12)
+ax.set_ylabel('Price (EUR/MWh)', fontsize=12)
+ax.grid(True, alpha=0.3)
+
+cbar = plt.colorbar(scatter, ax=ax)
+cbar.set_label('Negative Price', rotation=270, labelpad=20)
+cbar.set_ticks([0, 1])
+cbar.set_ticklabels(['No', 'Yes'])
+
+plt.tight_layout()
+plt.savefig(FIGURES_DIR / '06b_renewable_power_proportion_load.png', dpi=300, bbox_inches='tight')
+plt.close()
+print("[+] Saved: 06b_renewable_power_proportion_load.png")
+
+# ============================================================================
 # SUMMARY
 # ============================================================================
 
