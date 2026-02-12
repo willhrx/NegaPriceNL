@@ -132,4 +132,3 @@ To obtain your free ENTSO-E API key:
 ## Contact
 
 For questions or feedback, feel free to reach out or open an issue.
-
