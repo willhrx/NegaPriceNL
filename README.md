@@ -42,6 +42,7 @@ python scripts/download_data.py
 ```
 
 This will download:
+
 - Dutch, German, and Belgian day-ahead prices
 - Dutch solar and wind generation (actual + forecasts)
 - Dutch load data (actual + forecasts)
@@ -74,7 +75,6 @@ tail -f data_download.log
 
 ## Project Structure
 
-```
 negaprice-nl/
 ├── config/                 # Configuration files
 ├── data/                   # Data directory (git-ignored)
@@ -90,7 +90,6 @@ negaprice-nl/
 ├── notebooks/              # Jupyter notebooks for analysis
 ├── outputs/                # Final outputs (figures, models, reports)
 └── requirements.txt        # Python dependencies
-```
 
 ## Data Collection Details
 
@@ -104,6 +103,7 @@ negaprice-nl/
 ### Expected Data Volumes
 
 For 2019-2025 (7 years):
+
 - **Hourly records:** ~61,000 per dataset
 - **Total CSV files:** ~20 files
 - **Approximate size:** 200-300 MB total
@@ -111,11 +111,13 @@ For 2019-2025 (7 years):
 ### Handling Issues
 
 If the download is interrupted:
+
 1. Check `data_download.log` for the last successful download
 2. Re-run the script with `--start` set to the date where it failed
 3. The script will resume from that point
 
 Common issues:
+
 - **"API key not found"** - Ensure `.env` file exists with `ENTSOE_API_KEY=your_key`
 - **Timeout errors** - Some data types may have gaps; this is normal for ENTSO-E
 - **Empty DataFrames** - Some data may not be available for all time periods
