@@ -16,7 +16,9 @@ from typing import Dict, List, Optional, Tuple, Any
 
 import numpy as np
 import pandas as pd
+import joblib
 from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.inspection import permutation_importance
 from sklearn.metrics import (
     precision_score, recall_score, f1_score,
     average_precision_score, classification_report
@@ -282,8 +284,6 @@ class NegativePriceXGBoost:
         pd.DataFrame
             Feature importance with mean and std
         """
-        from sklearn.inspection import permutation_importance
-
         result = permutation_importance(
             self.model, X, y,
             n_repeats=n_repeats,
@@ -304,7 +304,6 @@ class NegativePriceXGBoost:
         if self.model is None:
             raise ValueError("Model not trained. Call fit() first.")
 
-        import joblib
         model_data = {
             'model': self.model,
             'params': self.params,
@@ -318,7 +317,6 @@ class NegativePriceXGBoost:
     @classmethod
     def load(cls, path: Path) -> 'NegativePriceXGBoost':
         """Load a model from disk."""
-        import joblib
         model_data = joblib.load(path)
 
         instance = cls(

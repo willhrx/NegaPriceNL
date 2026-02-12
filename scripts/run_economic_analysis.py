@@ -217,10 +217,17 @@ def create_visualizations(results: pd.DataFrame, backtester: EconomicBacktester,
     test_df_copy = test_df.copy()
     test_df_copy['ml_pred'] = ml_preds
 
+    # Scale national generation to asset capacity (same as economic_metrics.py)
+    gen_max = test_df_copy['solar_generation_mw'].max()
+    if gen_max > 0:
+        test_df_copy['gen_scaled'] = test_df_copy['solar_generation_mw'] * (ASSET_CAPACITY_MW / gen_max)
+    else:
+        test_df_copy['gen_scaled'] = 0
+
     # Revenue calculations
-    test_df_copy['rev_no_curtail'] = test_df_copy['solar_generation_mw'] * test_df_copy['price_eur_mwh']
-    test_df_copy['rev_ml'] = test_df_copy['solar_generation_mw'] * test_df_copy['price_eur_mwh'] * (1 - test_df_copy['ml_pred'])
-    test_df_copy['rev_perfect'] = test_df_copy['solar_generation_mw'] * np.maximum(test_df_copy['price_eur_mwh'], 0)
+    test_df_copy['rev_no_curtail'] = test_df_copy['gen_scaled'] * test_df_copy['price_eur_mwh']
+    test_df_copy['rev_ml'] = test_df_copy['gen_scaled'] * test_df_copy['price_eur_mwh'] * (1 - test_df_copy['ml_pred'])
+    test_df_copy['rev_perfect'] = test_df_copy['gen_scaled'] * np.maximum(test_df_copy['price_eur_mwh'], 0)
 
     # Daily aggregation
     daily = test_df_copy.resample('D').agg({
@@ -240,7 +247,7 @@ def create_visualizations(results: pd.DataFrame, backtester: EconomicBacktester,
                     alpha=0.3, color='green', label='Perfect Foresight (Max)')
     ax.plot(daily.index, daily['cum_savings_ml'], color='blue', linewidth=2,
             label=f'ML Model {MODEL_VERSION}')
-    ax.axhline(y=0, color='gray', linestyle='-', alpha=0.5)
+    ax.axhline(y=0, color='gray', linestyle='-', alpha=0.5, label='No Curtailment')
 
     ax.set_xlabel('Date', fontsize=12)
     ax.set_ylabel('Cumulative Savings (EUR)', fontsize=12)
