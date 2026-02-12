@@ -355,15 +355,27 @@ axes[0].set_ylabel('Price (€/MWh)')
 axes[0].grid(True, alpha=0.3)
 axes[0].legend(fontsize=10, markerscale=2)
 
-# Scatter: Total RES vs Price
-axes[1].scatter(sample.loc[mask_pos, 'total_res'], sample.loc[mask_pos, 'price'],
+# Scatter: RES / Load vs Price (2024 only, from unified dataset)
+unified_06 = pd.read_csv(PROCESSED_DATA_DIR / "unified_dataset2.csv",
+                          index_col=0, parse_dates=True)
+unified_06.index = pd.to_datetime(unified_06.index, utc=True)
+unified_06 = unified_06[(unified_06.index.year == 2024) & unified_06['load_mw'].notna() & (unified_06['load_mw'] > 0)].copy()
+unified_06['res_to_load'] = (
+    (unified_06['solar_generation_mw'].fillna(0) + unified_06['wind_generation_mw'].fillna(0))
+    / unified_06['load_mw']
+)
+unified_06['is_negative'] = (unified_06['price_eur_mwh'] < 0).astype(int)
+sample_06r = unified_06.sample(n=min(5000, len(unified_06)), random_state=42)
+mask_pos_r = sample_06r['is_negative'] == 0
+mask_neg_r = sample_06r['is_negative'] == 1
+axes[1].scatter(sample_06r.loc[mask_pos_r, 'res_to_load'] * 100, sample_06r.loc[mask_pos_r, 'price_eur_mwh'],
                 alpha=0.3, s=20, color='#2ca02c', label='Positive price')
-axes[1].scatter(sample.loc[mask_neg, 'total_res'], sample.loc[mask_neg, 'price'],
+axes[1].scatter(sample_06r.loc[mask_neg_r, 'res_to_load'] * 100, sample_06r.loc[mask_neg_r, 'price_eur_mwh'],
                 alpha=0.3, s=20, color='#d62728', label='Negative price')
 axes[1].axhline(y=0, color='red', linestyle='--', linewidth=2, alpha=0.7)
-axes[1].set_title('Price vs Total Renewable Generation', fontsize=14, fontweight='bold')
-axes[1].set_xlabel('Total RES Generation (MW)')
-axes[1].set_ylabel('Price (€/MWh)')
+axes[1].set_title('Price vs Renewable Share of Load', fontsize=14, fontweight='bold')
+axes[1].set_xlabel('Renewable Generation / Load (%)')
+axes[1].set_ylabel('Price (EUR/MWh)')
 axes[1].grid(True, alpha=0.3)
 axes[1].legend(fontsize=10, markerscale=2)
 
@@ -425,37 +437,23 @@ print("[+] Saved: 06a_renewable_power_proportion_generation.png")
 # 11. VISUALIZATION 06b: Price vs Renewable Generation / Load
 # ============================================================================
 
-print("\n[*] Creating Visualization 06b: Renewable Power Proportion (of Load) vs Price...")
+print("\n[*] Creating Visualization 06b: Price vs Total Renewable Generation...")
 
-# Filter to 2024 only, and rows where load_mw is valid and positive
-unified_load = unified[(unified.index.year == 2024) & unified['load_mw'].notna() & (unified['load_mw'] > 0)].copy()
-
-# Compute renewable-to-load ratio
-unified_load['res_to_load'] = (
-    (unified_load['solar_generation_mw'].fillna(0) + unified_load['wind_generation_mw'].fillna(0))
-    / unified_load['load_mw']
-)
-unified_load['is_negative'] = (unified_load['price_eur_mwh'] < 0).astype(int)
-
-print(f"   Valid records: {len(unified_load):,}")
-print(f"   RES/Load range: {unified_load['res_to_load'].min():.1%} – {unified_load['res_to_load'].max():.1%}")
-
-# Sample for plotting
-sample_06b = unified_load.sample(n=min(5000, len(unified_load)), random_state=42)
-print(f"   Sampled {len(sample_06b):,} points ({sample_06b['is_negative'].sum()} negative)")
+# Reuse merged data from viz 06 (price, solar, wind, total_res, is_negative)
+sample_06b = merged.sample(n=min(5000, len(merged)), random_state=42)
 
 fig, ax = plt.subplots(figsize=(16, 7))
 
 mask_pos = sample_06b['is_negative'] == 0
 mask_neg = sample_06b['is_negative'] == 1
-ax.scatter(sample_06b.loc[mask_pos, 'res_to_load'] * 100, sample_06b.loc[mask_pos, 'price_eur_mwh'],
+ax.scatter(sample_06b.loc[mask_pos, 'total_res'], sample_06b.loc[mask_pos, 'price'],
            alpha=0.3, s=20, color='#2ca02c', label='Positive price')
-ax.scatter(sample_06b.loc[mask_neg, 'res_to_load'] * 100, sample_06b.loc[mask_neg, 'price_eur_mwh'],
+ax.scatter(sample_06b.loc[mask_neg, 'total_res'], sample_06b.loc[mask_neg, 'price'],
            alpha=0.3, s=20, color='#d62728', label='Negative price')
 ax.axhline(y=0, color='red', linestyle='--', linewidth=2, alpha=0.7)
-ax.set_title('Price vs Renewable Generation as Share of Load (Solar + Wind / Load)',
+ax.set_title('Price vs Total Renewable Generation (Solar + Wind)',
              fontsize=16, fontweight='bold')
-ax.set_xlabel('Renewable Generation / Load (%)', fontsize=12)
+ax.set_xlabel('Total RES Generation (MW)', fontsize=12)
 ax.set_ylabel('Price (EUR/MWh)', fontsize=12)
 ax.grid(True, alpha=0.3)
 ax.legend(fontsize=11, markerscale=2)

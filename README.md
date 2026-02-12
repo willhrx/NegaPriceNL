@@ -120,16 +120,6 @@ Common issues:
 - **Timeout errors** - Some data types may have gaps; this is normal for ENTSO-E
 - **Empty DataFrames** - Some data may not be available for all time periods
 
-## Next Steps
-
-After downloading data:
-
-1. **Data Quality Check:** Run exploratory notebooks to verify data integrity
-2. **Feature Engineering:** Create ML-ready features
-3. **Model Training:** Train XGBoost classifier for negative price prediction
-4. **Economic Analysis:** Quantify business value
-5. **Visualization:** Create portfolio-ready charts
-
 ## API Key Registration
 
 To obtain your free ENTSO-E API key:
