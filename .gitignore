@@ -49,6 +49,7 @@ logs/
 
 # IDE
 PROJECT_TIMELINE.md
+ACTION_PLAN.md
 .claude
 .vscode/
 .idea/

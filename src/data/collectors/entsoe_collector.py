@@ -280,6 +280,55 @@ class EntsoeDataCollector:
             logger.warning("No forecast data collected")
             return pd.DataFrame()
 
+    def get_wind_and_solar_forecast(
+        self,
+        start: datetime,
+        end: datetime,
+        country_code: str = COUNTRY_CODE_NL
+    ) -> pd.DataFrame:
+        """
+        Fetch day-ahead generation forecasts for wind and solar.
+
+        Uses ENTSO-E document type A69 which provides separate forecasts
+        for solar, wind onshore, and wind offshore generation.
+
+        Args:
+            start: Start datetime
+            end: End datetime
+            country_code: Country code (default: NL)
+
+        Returns:
+            DataFrame with datetime index and columns for solar, wind onshore,
+            and wind offshore generation forecasts (MW)
+        """
+        logger.info(f"Fetching wind & solar forecast for {country_code} from {start} to {end}")
+
+        chunks = self._chunk_date_range(start, end)
+        all_data = []
+
+        for chunk_start, chunk_end in chunks:
+            logger.info(f"  Fetching chunk: {chunk_start.date()} to {chunk_end.date()}")
+
+            data = self._safe_query(
+                self.client.query_wind_and_solar_forecast,
+                country_code,
+                start=pd.Timestamp(chunk_start, tz='Europe/Amsterdam'),
+                end=pd.Timestamp(chunk_end, tz='Europe/Amsterdam')
+            )
+
+            if data is not None:
+                all_data.append(data)
+
+        if all_data:
+            result = pd.concat(all_data).sort_index()
+            result = result[~result.index.duplicated(keep='first')]
+            logger.info(f"✓ Collected {len(result)} wind/solar forecast records")
+            logger.info(f"  Columns: {list(result.columns)}")
+            return result
+        else:
+            logger.warning("No wind/solar forecast data collected")
+            return pd.DataFrame()
+
     def get_load_actual(
         self,
         start: datetime,
