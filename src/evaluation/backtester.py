@@ -32,8 +32,9 @@ class EconomicBacktester:
         Solar asset capacity in MW (for scaling generation)
     """
 
-    def __init__(self, capacity_mw: float = 10.0):
+    def __init__(self, capacity_mw: float = 10.0, hours_per_period: float = 1.0):
         self.capacity_mw = capacity_mw
+        self.hours_per_period = hours_per_period
         self.results = {}
         self.strategies = []
 
@@ -94,7 +95,8 @@ class EconomicBacktester:
                     y_pred=y_pred,
                     prices=prices,
                     generation=generation,
-                    capacity_mw=self.capacity_mw
+                    capacity_mw=self.capacity_mw,
+                    hours_per_period=self.hours_per_period
                 )
 
                 # Calculate classification metrics

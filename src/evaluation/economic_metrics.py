@@ -22,6 +22,7 @@ def calculate_economic_value(
     prices: np.ndarray,
     generation: np.ndarray,
     capacity_mw: float = 10.0,
+    hours_per_period: float = 1.0,
 ) -> Dict:
     """
     Calculate economic value of negative price predictions.
@@ -38,6 +39,8 @@ def calculate_economic_value(
         Solar generation (MWh) - actual or scaled to capacity
     capacity_mw : float
         Asset capacity in MW (used for normalization)
+    hours_per_period : float
+        Duration of each time period in hours (1.0 for hourly, 0.25 for 15-min)
 
     Returns
     -------
@@ -56,16 +59,16 @@ def calculate_economic_value(
 
     # 1. Baseline: No curtailment (produce always)
     # Revenue includes negative terms when price < 0
-    revenue_no_curtail = np.sum(gen_scaled * prices)
+    revenue_no_curtail = np.sum(gen_scaled * prices * hours_per_period)
 
     # 2. Perfect foresight: Curtail only during actual negative hours
     # Revenue = generation × max(price, 0)
-    revenue_perfect = np.sum(gen_scaled * np.maximum(prices, 0))
+    revenue_perfect = np.sum(gen_scaled * np.maximum(prices, 0) * hours_per_period)
 
     # 3. With ML prediction: Curtail when predicted negative
     # When y_pred=1, we curtail → no revenue/loss
     # When y_pred=0, we produce → get price (positive or negative)
-    revenue_with_pred = np.sum(gen_scaled * prices * (1 - y_pred))
+    revenue_with_pred = np.sum(gen_scaled * prices * (1 - y_pred) * hours_per_period)
 
     # Calculate savings
     max_savings = revenue_perfect - revenue_no_curtail  # Theoretical maximum
@@ -75,7 +78,8 @@ def calculate_economic_value(
     capture_rate = (actual_savings / max_savings * 100) if max_savings != 0 else 0
 
     # Breakdown of costs by confusion matrix quadrant
-    costs = calculate_confusion_costs(y_true, y_pred, prices, gen_scaled)
+    costs = calculate_confusion_costs(y_true, y_pred, prices, gen_scaled,
+                                      hours_per_period=hours_per_period)
 
     return {
         'revenue_no_curtailment_eur': revenue_no_curtail,
@@ -84,7 +88,7 @@ def calculate_economic_value(
         'savings_achieved_eur': actual_savings,
         'max_possible_savings_eur': max_savings,
         'capture_rate_pct': capture_rate,
-        'total_generation_mwh': np.sum(gen_scaled),
+        'total_generation_mwh': np.sum(gen_scaled * hours_per_period),
         'hours_analyzed': len(prices),
         'negative_price_hours': int(np.sum(y_true)),
         'predicted_negative_hours': int(np.sum(y_pred)),
@@ -96,7 +100,8 @@ def calculate_confusion_costs(
     y_true: np.ndarray,
     y_pred: np.ndarray,
     prices: np.ndarray,
-    generation: np.ndarray
+    generation: np.ndarray,
+    hours_per_period: float = 1.0,
 ) -> Dict:
     """
     Calculate the economic cost/benefit of each confusion matrix quadrant.
@@ -111,6 +116,8 @@ def calculate_confusion_costs(
         Actual electricity prices
     generation : np.ndarray
         Generation (scaled)
+    hours_per_period : float
+        Duration of each time period in hours (1.0 for hourly, 0.25 for 15-min)
 
     Returns
     -------
@@ -119,22 +126,22 @@ def calculate_confusion_costs(
     """
     # True Positives: Correctly predicted negative → curtailed → avoided loss
     tp_mask = (y_true == 1) & (y_pred == 1)
-    tp_value = np.sum(generation[tp_mask] * np.abs(prices[tp_mask]))  # Avoided paying
+    tp_value = np.sum(generation[tp_mask] * np.abs(prices[tp_mask]) * hours_per_period)  # Avoided paying
     tp_count = int(np.sum(tp_mask))
 
     # True Negatives: Correctly predicted positive → produced → captured revenue
     tn_mask = (y_true == 0) & (y_pred == 0)
-    tn_value = np.sum(generation[tn_mask] * prices[tn_mask])  # Revenue earned
+    tn_value = np.sum(generation[tn_mask] * prices[tn_mask] * hours_per_period)  # Revenue earned
     tn_count = int(np.sum(tn_mask))
 
     # False Positives: Predicted negative but was positive → curtailed unnecessarily
     fp_mask = (y_true == 0) & (y_pred == 1)
-    fp_value = np.sum(generation[fp_mask] * prices[fp_mask])  # Missed revenue
+    fp_value = np.sum(generation[fp_mask] * prices[fp_mask] * hours_per_period)  # Missed revenue
     fp_count = int(np.sum(fp_mask))
 
     # False Negatives: Predicted positive but was negative → produced → paid to generate
     fn_mask = (y_true == 1) & (y_pred == 0)
-    fn_value = np.sum(generation[fn_mask] * np.abs(prices[fn_mask]))  # Loss incurred
+    fn_value = np.sum(generation[fn_mask] * np.abs(prices[fn_mask]) * hours_per_period)  # Loss incurred
     fn_count = int(np.sum(fn_mask))
 
     return {
