@@ -147,7 +147,7 @@ def create_visualizations(results: pd.DataFrame, backtester: EconomicBacktester,
     sns.set_palette("husl")
 
     # 1. Strategy Comparison Bar Chart
-    fig, ax = plt.subplots(figsize=(12, 6))
+    fig, ax = plt.subplots(figsize=(14, 7))
 
     plot_df = results[results['strategy'] != 'Never Curtail'].copy()
     plot_df = plot_df.sort_values('capture_rate_pct', ascending=True)
@@ -158,11 +158,16 @@ def create_visualizations(results: pd.DataFrame, backtester: EconomicBacktester,
 
     ax.set_xlabel('Capture Rate (%)', fontsize=12)
     ax.set_title('Strategy Comparison: Capture Rate of Maximum Possible Savings\n(v5 - D-1 Safe Features, 15-min Resolution)', fontsize=14)
-    ax.set_xlim(0, 110)
+    x_min = min(0, plot_df['capture_rate_pct'].min() * 1.15)
+    x_max = max(110, plot_df['capture_rate_pct'].max() * 1.15)
+    ax.set_xlim(x_min, x_max)
+    ax.axvline(x=0, color='black', linewidth=0.8)
 
     for bar, val in zip(bars, plot_df['capture_rate_pct']):
-        ax.text(val + 2, bar.get_y() + bar.get_height()/2, f'{val:.1f}%',
-                va='center', fontsize=10)
+        offset = -2 if val < 0 else 2
+        ha = 'right' if val < 0 else 'left'
+        ax.text(val + offset, bar.get_y() + bar.get_height()/2, f'{val:.1f}%',
+                va='center', ha=ha, fontsize=10)
 
     plt.tight_layout()
     fig.savefig(FIGURES_DIR / 'strategy_comparison_v5.png', dpi=150, bbox_inches='tight')
