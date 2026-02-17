@@ -1,0 +1,74 @@
+======================================================================
+ECONOMIC BACKTEST RESULTS
+======================================================================
+Generated: 2026-02-16 17:29:09.212738
+Asset Capacity: 10.0 MW
+
+Baseline Revenue (No Curtailment): 624,109.40 EUR
+Maximum Possible Savings: 12,654.22 EUR
+
+----------------------------------------------------------------------
+STRATEGY COMPARISON (sorted by Capture Rate)
+----------------------------------------------------------------------
+
+ML Model (v6)
+  Revenue:        624,795.83 EUR
+  Savings:            686.43 EUR
+  Capture Rate:         5.4%
+  Precision:           67.4%
+  Recall:              43.1%
+  F1 Score:           0.525
+
+Never Curtail
+  Revenue:        624,109.40 EUR
+  Savings:              0.00 EUR
+  Capture Rate:         0.0%
+  Precision:            0.0%
+  Recall:               0.0%
+  F1 Score:           0.000
+
+Heuristic (Weekend + Solar Peak + Season)
+  Revenue:        619,023.25 EUR
+  Savings:         -5,086.14 EUR
+  Capture Rate:       -40.2%
+  Precision:           62.3%
+  Recall:              33.2%
+  F1 Score:           0.433
+
+Naive (D-2 Same QH)
+  Revenue:        574,888.53 EUR
+  Savings:        -49,220.87 EUR
+  Capture Rate:      -389.0%
+  Precision:           42.7%
+  Recall:              42.7%
+  F1 Score:           0.427
+
+Solar Threshold (Forecast RES>50% + Low Load)
+  Revenue:        550,679.72 EUR
+  Savings:        -73,429.68 EUR
+  Capture Rate:      -580.3%
+  Precision:           46.1%
+  Recall:              82.0%
+  F1 Score:           0.591
+
+----------------------------------------------------------------------
+COST BREAKDOWN (Best Strategy)
+----------------------------------------------------------------------
+Strategy: ML Model (v6)
+  Avoided Losses (TP):         5,930.56 EUR
+  Captured Revenue (TN):     631,519.48 EUR
+  Missed Revenue (FP):         5,244.13 EUR
+  Paid to Generate (FN):       6,723.66 EUR
+
+======================================================================
+
+======================================================================
+v5 (HistGradientBoosting) vs v6 (XGBoost) COMPARISON
+======================================================================
+                                 v5           v6        Delta
+  Algorithm            HistGBoosting      XGBoost             
+  Features                       55           55            0
+  Recall                      44.7%        43.1%        -1.7%
+  Precision                   62.4%        67.4%        +5.0%
+  F1                          0.521        0.525       +0.004
+  Capture Rate               -17.0%         5.4%       +22.4%
