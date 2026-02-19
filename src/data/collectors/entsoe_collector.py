@@ -492,6 +492,65 @@ class EntsoeDataCollector:
             logger.warning(f"No flow data collected for {from_country} -> {to_country}")
             return pd.DataFrame()
 
+    def get_net_transfer_capacity_dayahead(
+        self,
+        start: datetime,
+        end: datetime,
+        from_country: str = COUNTRY_CODE_NL,
+        to_country: str = COUNTRY_CODE_DE,
+    ) -> pd.DataFrame:
+        """
+        Fetch day-ahead net transfer capacity (NTC) between two bidding zones.
+
+        Args:
+            start: Start datetime
+            end: End datetime
+            from_country: Origin bidding zone code (e.g. 'NL', 'DE_LU', 'GB', 'NO_2')
+            to_country: Destination bidding zone code
+
+        Returns:
+            DataFrame with datetime index and NTC column (MW)
+        """
+        logger.info(f"Fetching day-ahead NTC {from_country} -> {to_country} from {start} to {end}")
+
+        chunks = self._chunk_date_range(start, end, chunk_days=90)
+        all_data = []
+
+        for chunk_start, chunk_end in chunks:
+            logger.info(f"  Fetching chunk: {chunk_start.date()} to {chunk_end.date()}")
+
+            data = self._safe_query(
+                self.client.query_net_transfer_capacity_dayahead,
+                from_country,
+                to_country,
+                start=pd.Timestamp(chunk_start, tz='Europe/Amsterdam'),
+                end=pd.Timestamp(chunk_end, tz='Europe/Amsterdam'),
+            )
+
+            if data is not None:
+                all_data.append(data)
+
+        if all_data:
+            result = pd.concat(all_data).sort_index()
+            result = result[~result.index.duplicated(keep='first')]
+
+            # Normalise country codes for column naming (DE_LU -> de_lu, NO_2 -> no2)
+            from_label = from_country.lower().replace('_', '')
+            to_label = to_country.lower().replace('_', '')
+            column_name = f'ntc_da_{from_label}_{to_label}_mw'
+
+            if isinstance(result, pd.Series):
+                result = result.to_frame(name=column_name)
+            elif isinstance(result, pd.DataFrame) and column_name not in result.columns:
+                if len(result.columns) > 0:
+                    result = result.rename(columns={result.columns[0]: column_name})
+
+            logger.info(f"  Collected {len(result)} NTC records")
+            return result
+        else:
+            logger.warning(f"No NTC data collected for {from_country} -> {to_country}")
+            return pd.DataFrame()
+
     def save_data(self, df: pd.DataFrame, filepath: Path):
         """
         Save DataFrame to CSV file.
