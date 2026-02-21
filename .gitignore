@@ -50,6 +50,7 @@ logs/
 # IDE
 PROJECT_TIMELINE.md
 ACTION_PLAN.md
+new_features.md
 .claude
 .vscode/
 .idea/
