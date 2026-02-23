@@ -1,0 +1,114 @@
+================================================================================
+BID CURVE STRATEGY BACKTEST RESULTS
+================================================================================
+Generated: 2026-02-23 21:30:50
+Asset Capacity: 10.0 MW
+Period Duration: 0.25 hours (quarter-hourly)
+
+Baseline Revenue (No Curtailment):  264,965,643.67 EUR
+Perfect Foresight Revenue:          270,337,992.71 EUR
+Maximum Possible Savings:             5,372,349.03 EUR
+
+--------------------------------------------------------------------------------
+STRATEGY COMPARISON (sorted by Capture Rate)
+--------------------------------------------------------------------------------
+
+Fixed Floor (-5 EUR/MWh)
+  Revenue:          269,646,240.98 EUR
+  Savings:            4,680,597.31 EUR
+  Capture Rate:              87.1%
+  Avg Bid Price:            -5.00 EUR/MWh
+  Bid Std Dev:               0.00 EUR/MWh
+  Curtailment Rate:           2.4%
+
+Fixed Floor (-10 EUR/MWh)
+  Revenue:          269,032,137.78 EUR
+  Savings:            4,066,494.11 EUR
+  Capture Rate:              75.7%
+  Avg Bid Price:           -10.00 EUR/MWh
+  Bid Std Dev:               0.00 EUR/MWh
+  Curtailment Rate:           1.6%
+
+Fixed Floor (-20 EUR/MWh)
+  Revenue:          268,223,059.50 EUR
+  Savings:            3,257,415.82 EUR
+  Capture Rate:              60.6%
+  Avg Bid Price:           -20.00 EUR/MWh
+  Bid Std Dev:               0.00 EUR/MWh
+  Curtailment Rate:           1.0%
+
+Perfect Foresight (Theoretical Max)
+  Revenue:          264,965,643.67 EUR
+  Savings:                    0.00 EUR
+  Capture Rate:               0.0%
+  Avg Bid Price:            86.83 EUR/MWh
+  Bid Std Dev:              50.12 EUR/MWh
+  Curtailment Rate:           0.0%
+
+Quantile q0.10
+  Revenue:          240,638,015.85 EUR
+  Savings:          -24,327,627.82 EUR
+  Capture Rate:            -452.8%
+  Avg Bid Price:            66.90 EUR/MWh
+  Bid Std Dev:              32.61 EUR/MWh
+  Curtailment Rate:          18.2%
+
+Expected Value (E[price])
+  Revenue:          189,357,451.28 EUR
+  Savings:          -75,608,192.39 EUR
+  Capture Rate:           -1407.4%
+  Avg Bid Price:            84.03 EUR/MWh
+  Bid Std Dev:              34.53 EUR/MWh
+  Curtailment Rate:          38.2%
+
+Quantile q0.25
+  Revenue:          188,052,735.72 EUR
+  Savings:          -76,912,907.96 EUR
+  Capture Rate:           -1431.6%
+  Avg Bid Price:            82.76 EUR/MWh
+  Bid Std Dev:              37.92 EUR/MWh
+  Curtailment Rate:          39.9%
+
+Quantile q0.40
+  Revenue:          140,916,584.03 EUR
+  Savings:          -124,049,059.64 EUR
+  Capture Rate:           -2309.0%
+  Avg Bid Price:            91.44 EUR/MWh
+  Bid Std Dev:              39.75 EUR/MWh
+  Curtailment Rate:          57.5%
+
+Median (q50)
+  Revenue:          118,716,453.62 EUR
+  Savings:          -146,249,190.06 EUR
+  Capture Rate:           -2722.3%
+  Avg Bid Price:            95.74 EUR/MWh
+  Bid Std Dev:              40.22 EUR/MWh
+  Curtailment Rate:          65.8%
+
+--------------------------------------------------------------------------------
+VALUE BREAKDOWN (Best Strategy)
+--------------------------------------------------------------------------------
+Strategy: Fixed Floor (-5 EUR/MWh)
+
+  Avoided Losses:         4,680,597.31 EUR  (curtailed when negative)
+  Captured Revenue:     270,337,992.71 EUR  (cleared when positive)
+  Missed Revenue:                 0.00 EUR  (curtailed when positive)
+  Paid to Generate:         691,751.73 EUR  (cleared when negative)
+
+  Net Value:              4,680,597.31 EUR
+
+--------------------------------------------------------------------------------
+ADAPTIVE vs FIXED FLOOR STRATEGIES
+--------------------------------------------------------------------------------
+
+Best Adaptive Strategy: Quantile q0.10
+  Capture Rate: -452.8%
+  Avg Bid: 66.90 EUR/MWh
+
+Best Fixed Floor Strategy: Fixed Floor (-5 EUR/MWh)
+  Capture Rate: 87.1%
+  Avg Bid: -5.00 EUR/MWh
+
+Adaptive Advantage: +-540.0pp capture rate
+
+================================================================================
