@@ -186,3 +186,89 @@ def evaluate_quantile_forecast(
         'crossing_rate': crossing_rate,
         'calibration': cal,
     }
+
+
+def compare_calibration(
+    y_true: np.ndarray,
+    raw_preds: np.ndarray,
+    calibrated_preds: np.ndarray,
+    quantiles: List[float]
+) -> pd.DataFrame:
+    """
+    Compare calibration of raw vs calibrated quantile predictions.
+
+    This function is used to evaluate the improvement from conformal calibration.
+    The goal is for calibrated predictions to have observed coverage that matches
+    the nominal (expected) coverage for each quantile.
+
+    Parameters
+    ----------
+    y_true : np.ndarray, shape (n_samples,)
+        Actual observed values
+    raw_preds : np.ndarray, shape (n_samples, n_quantiles)
+        Raw quantile predictions before conformal calibration
+    calibrated_preds : np.ndarray, shape (n_samples, n_quantiles)
+        Calibrated quantile predictions after conformal calibration
+    quantiles : List[float]
+        Quantile levels (e.g., [0.05, 0.10, ..., 0.95])
+
+    Returns
+    -------
+    pd.DataFrame
+        Comparison table with columns:
+        - quantile: Quantile level
+        - expected: Nominal coverage (same as quantile level)
+        - raw_observed: Fraction of actuals below raw prediction
+        - calibrated_observed: Fraction of actuals below calibrated prediction
+        - improvement_pp: Improvement in percentage points (lower is better for deviations)
+
+    Example
+    -------
+    >>> comp = compare_calibration(y_test, raw_preds, cal_preds, [0.1, 0.5, 0.9])
+    >>> print(comp)
+       quantile  expected  raw_observed  calibrated_observed  improvement_pp
+    0      0.10      0.10         0.189                0.103          -8.600
+    1      0.50      0.50         0.708                0.512          -19.600
+    2      0.90      0.90         0.901                0.898          -0.300
+
+    The improvement_pp column shows how much closer calibrated predictions are
+    to the nominal coverage. Negative values indicate reduction in bias.
+    """
+    y_true = np.asarray(y_true).flatten()
+
+    if raw_preds.shape != calibrated_preds.shape:
+        raise ValueError(
+            f"raw_preds shape ({raw_preds.shape}) must match "
+            f"calibrated_preds shape ({calibrated_preds.shape})"
+        )
+
+    if raw_preds.shape[1] != len(quantiles):
+        raise ValueError(
+            f"Number of quantile columns ({raw_preds.shape[1]}) must match "
+            f"length of quantiles list ({len(quantiles)})"
+        )
+
+    results = []
+    for i, alpha in enumerate(quantiles):
+        # Observed coverage: fraction of actuals below the quantile prediction
+        raw_obs = (y_true < raw_preds[:, i]).mean()
+        cal_obs = (y_true < calibrated_preds[:, i]).mean()
+
+        # Absolute deviation from nominal
+        raw_dev = abs(raw_obs - alpha)
+        cal_dev = abs(cal_obs - alpha)
+
+        # Improvement: reduction in absolute deviation (negative = better)
+        improvement = (cal_dev - raw_dev) * 100
+
+        results.append({
+            'quantile': alpha,
+            'expected': alpha,
+            'raw_observed': raw_obs,
+            'calibrated_observed': cal_obs,
+            'raw_deviation_pp': raw_dev * 100,
+            'cal_deviation_pp': cal_dev * 100,
+            'improvement_pp': improvement
+        })
+
+    return pd.DataFrame(results)

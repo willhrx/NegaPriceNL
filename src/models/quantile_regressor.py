@@ -96,14 +96,31 @@ class NegativePriceQuantileRegressor:
 
         return self
 
-    def predict(self, X: pd.DataFrame) -> np.ndarray:
+    def predict(self, X: pd.DataFrame, enforce_monotonicity: bool = True) -> np.ndarray:
         """
         Predict all quantiles.
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+            Feature matrix
+        enforce_monotonicity : bool, default=True
+            If True, sort quantiles to ensure q_i <= q_{i+1} for all samples.
+            This eliminates quantile crossing (when lower quantiles predict
+            higher values than upper quantiles), which violates the definition
+            of a valid probability distribution. Recommended for production use.
 
         Returns
         -------
         np.ndarray of shape (n_samples, n_quantiles)
             Price forecasts in EUR/MWh for each quantile.
+
+        Notes
+        -----
+        Monotonicity enforcement via post-hoc sorting is a simple but effective
+        approach. For more sophisticated methods, see:
+        - Isotonic regression
+        - Non-crossing quantile regression (joint training with ordering constraints)
         """
         if not self.models:
             raise ValueError("Model not trained. Call fit() first.")
@@ -111,6 +128,12 @@ class NegativePriceQuantileRegressor:
         predictions = np.column_stack([
             self.models[alpha].predict(X) for alpha in self.quantiles
         ])
+
+        # Enforce monotonicity to prevent quantile crossing
+        if enforce_monotonicity:
+            for i in range(predictions.shape[0]):
+                predictions[i] = np.sort(predictions[i])
+
         return predictions
 
     def predict_quantile(self, X: pd.DataFrame, alpha: float) -> np.ndarray:
