@@ -64,6 +64,8 @@ class DailyOutcome:
     n_discharge_mtus: int
     energy_charged_mwh: float
     energy_discharged_mwh: float
+    actual_charge_mw: np.ndarray  # Actual charge power per MTU (96,)
+    actual_discharge_mw: np.ndarray  # Actual discharge power per MTU (96,)
 
     @property
     def cycles(self) -> float:
@@ -135,6 +137,8 @@ class AuctionSimulator:
 
         charge_cleared = np.zeros(n_mtus, dtype=bool)
         discharge_cleared = np.zeros(n_mtus, dtype=bool)
+        actual_charge_mw = np.zeros(n_mtus)
+        actual_discharge_mw = np.zeros(n_mtus)
 
         # Track SoC over the day
         soc_history = [battery.soc_mwh]
@@ -160,6 +164,7 @@ class AuctionSimulator:
                 # Attempt to charge
                 actual_stored = battery.charge(requested_power, dt)
                 energy_charged += actual_stored
+                actual_charge_mw[t] = actual_stored / dt  # MWh → MW
 
                 # Cost = energy drawn from grid × price
                 # Energy from grid = stored / charge_efficiency
@@ -185,6 +190,7 @@ class AuctionSimulator:
                 # Attempt to discharge
                 actual_delivered = battery.discharge(requested_power, dt)
                 energy_discharged += actual_delivered
+                actual_discharge_mw[t] = actual_delivered / dt  # MWh → MW
 
                 # Revenue = energy delivered to grid × price
                 bess_discharge_revenue += actual_delivered * price
@@ -216,6 +222,8 @@ class AuctionSimulator:
             n_discharge_mtus=int(discharge_cleared.sum()),
             energy_charged_mwh=energy_charged,
             energy_discharged_mwh=energy_discharged,
+            actual_charge_mw=actual_charge_mw,
+            actual_discharge_mw=actual_discharge_mw,
         )
 
     def clear_wind_only(
@@ -262,4 +270,6 @@ class AuctionSimulator:
             n_discharge_mtus=0,
             energy_charged_mwh=0.0,
             energy_discharged_mwh=0.0,
+            actual_charge_mw=np.zeros(n_mtus),
+            actual_discharge_mw=np.zeros(n_mtus),
         )

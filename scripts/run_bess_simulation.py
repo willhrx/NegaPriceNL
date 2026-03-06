@@ -18,6 +18,7 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 import joblib
 
 # Project setup
@@ -237,6 +238,71 @@ def create_visualizations(
     logger.info(f"  Saved: monthly_summary.png")
 
 
+def create_bess_activity_heatmap(
+    outcomes: list,
+    output_dir: Path,
+):
+    """Create hour × month heatmap for BESS charging/discharging."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Collect MTU-level data
+    records = []
+    for outcome in outcomes:
+        date = outcome.date
+        for t in range(96):
+            hour = t // 4  # Convert quarter-hour to hour (0-23)
+            records.append({
+                'month': date.month,
+                'hour': hour,
+                'charge_mw': outcome.actual_charge_mw[t],
+                'discharge_mw': outcome.actual_discharge_mw[t],
+            })
+
+    df = pd.DataFrame(records)
+
+    # Pivot to heatmap format (aggregate by mean)
+    charge_heatmap = df.pivot_table(
+        index='month', columns='hour',
+        values='charge_mw', aggfunc='mean'
+    )
+    discharge_heatmap = df.pivot_table(
+        index='month', columns='hour',
+        values='discharge_mw', aggfunc='mean'
+    )
+
+    # Create dual heatmap figure
+    fig, axes = plt.subplots(1, 2, figsize=(20, 8))
+    month_labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+    # Charge heatmap (Blues colormap)
+    sns.heatmap(charge_heatmap, cmap='Blues', annot=True, fmt='.1f',
+                cbar_kws={'label': 'Avg Charge Power (MW)'},
+                linewidths=0.5, ax=axes[0])
+    axes[0].set_title('BESS Charging Patterns by Hour and Month',
+                      fontsize=14, fontweight='bold')
+    axes[0].set_xlabel('Hour of Day')
+    axes[0].set_ylabel('Month')
+    axes[0].set_yticklabels(month_labels, rotation=0)
+
+    # Discharge heatmap (Reds colormap)
+    sns.heatmap(discharge_heatmap, cmap='Reds', annot=True, fmt='.1f',
+                cbar_kws={'label': 'Avg Discharge Power (MW)'},
+                linewidths=0.5, ax=axes[1])
+    axes[1].set_title('BESS Discharging Patterns by Hour and Month',
+                      fontsize=14, fontweight='bold')
+    axes[1].set_xlabel('Hour of Day')
+    axes[1].set_ylabel('Month')
+    axes[1].set_yticklabels(month_labels, rotation=0)
+
+    fig.suptitle('BESS Activity Patterns (Conservative q25/q75 Strategy)',
+                 fontsize=16, fontweight='bold', y=1.02)
+    fig.tight_layout()
+    fig.savefig(output_dir / 'bess_activity_heatmap.png', dpi=300, bbox_inches='tight')
+    plt.close(fig)
+    logger.info(f"  Saved: bess_activity_heatmap.png")
+
+
 def main():
     """Main entry point for BESS simulation."""
     parser = argparse.ArgumentParser(description='Run BESS arbitrage simulation')
@@ -365,6 +431,9 @@ def main():
     # Create visualizations
     logger.info("\nCreating visualizations...")
     create_visualizations(outcomes_df, all_metrics, BESS_FIGURES_DIR)
+
+    # Create BESS activity heatmap
+    create_bess_activity_heatmap(conservative_outcomes, BESS_FIGURES_DIR)
 
     # Summary
     logger.info("")
